@@ -36,7 +36,7 @@ router.post('/', rateLimit, validateKey, async (req, res) => {
 
   try {
     const result = await db.query(
-      'INSERT INTO scores (game_id, player_name, score, device_type) VALUES ($1, $2, $3, $4) RETURNING id',
+      'INSERT INTO leaderboard_schema (game_id, player_name, score, device_type) VALUES ($1, $2, $3, $4) RETURNING id',
       [gameId, sanitizedName, numericScore, deviceType]
     );
     res.status(201).json({ ok: true, id: result.rows[0].id });
@@ -60,7 +60,7 @@ router.get('/:gameId', async (req, res) => {
   try {
     const result = await db.query(
       `SELECT player_name, score, created_at
-       FROM scores
+       FROM leaderboard_schema
        WHERE game_id = $1 AND device_type = $2
        ORDER BY score DESC
        LIMIT $3`,
