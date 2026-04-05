@@ -18,114 +18,32 @@
 - [x] 9 game secret keys deployed as Railway env vars (all except mini-arcade)
 - [x] Health check confirmed: https://leaderboard-server-production.up.railway.app/health
 
+### games-directory-page pipeline
+- [x] `.env` created at `C:\Users\leoja\Desktop\Dad Games\full-games\.env` with all 9 game keys
+- [x] `factory-leaderboards.js` cloud sync blocks implemented (cloudAvailable, submitToCloud, fetchFromCloud, cloudSyncStatus)
+- [x] `game.json` leaderboard block added to all 9 games (enabled: true for apple-catcher, bird-duty, blade-and-sphere, space-molestors, speed-demon)
+- [x] `patch_all_games.py` extended to load `.env`, inject `leaderboard` config into `JAY_GAME_CONFIG`, and inject `JayLeaderboard` helper inline per game
+- [x] Dry run confirmed: 5 games patched with leaderboard, 4 skipped as expected
+
 ---
 
 ## What's Left (In Order)
 
-### Step 1 — Set up local .env file
-Create a `.env` file at:
-```
-C:\Users\leoja\Desktop\Dad Games\full-games\.env
-```
-(One level above the repos — never inside a repo, never committed.)
-
-Contents:
-```
-LEADERBOARD_URL=https://leaderboard-server-production.up.railway.app
-KEY_APPLE_CATCHER=<your secret>
-KEY_ART_OF_WAR=<your secret>
-KEY_BIRD_DUTY=<your secret>
-KEY_BLADE_AND_SPHERE=<your secret>
-KEY_DODGEBALLS=<your secret>
-KEY_PADDLE_BATTLE=<your secret>
-KEY_SPACE_MOLESTORS=<your secret>
-KEY_SPEED_DEMON=<your secret>
-KEY_SUMORAI=<your secret>
-```
-These must match the keys already deployed on Railway. Pull them from wherever you stored them.
+### Step 1 — Rebuild apple-catcher in TurboWarp
+Wire up the leaderboard blocks in the apple-catcher `.sb3` project, re-export, drop ZIP in `../exports/`.
 
 ---
 
-### Step 2 — Update factory-leaderboards.js (TurboWarp extension)
-Location: `turbowarp-extensions-js/canon/factory_extensions/factory-leaderboards.js`
-
-Add 4 new cloud sync blocks (do NOT change any existing blocks):
-- `cloud leaderboard available ?` — boolean, returns true if window.JayLeaderboard exists
-- `submit to cloud player [PLAYER] score [VALUE]` — async command, calls JayLeaderboard.submit()
-- `fetch top [LIMIT] scores from cloud into leaderboard [NAME]` — async command, calls JayLeaderboard.getTop()
-- `cloud sync status` — reporter, returns "idle" / "loading" / "success" / "error"
-
-Full spec: `leaderboard-server/other/leaderboard-cloud-sync-plan.md`
-
-After updating the extension, each game that uses it must be **rebuilt and re-exported from TurboWarp**.
-
----
-
-### Step 3 — Update game.json files (games-directory repo)
-Add leaderboard fields to each applicable game's game.json:
-```json
-"leaderboard": {
-  "enabled": true,
-  "scoreMin": 0,
-  "scoreMax": 99999
-}
-```
-
-Games that need this (9 total — mini-arcade is the lobby, skip it):
-- apple-catcher
-- art-of-war
-- bird-duty
-- blade-and-sphere
-- dodgeballs
-- paddle-battle
-- space-molestors
-- speed-demon
-- sumorai
-
-Set scoreMin/scoreMax to match what's actually achievable in each game. For now 99999 is fine.
-
----
-
-### Step 4 — Extend patch_all_games.py (games-directory repo)
-Three additions to the build pipeline:
-
-**4a.** Load the `.env` file from one level above the repo root at startup.
-
-**4b.** Read each game's `game.json` in `patch_html()` to get the leaderboard block.
-
-**4c.** When `leaderboard.enabled` is true, extend the injected `JAY_GAME_CONFIG` block:
-```js
-leaderboard: {
-  url:    "https://leaderboard-server-production.up.railway.app",
-  gameId: "apple-catcher",
-  key:    "<loaded from env>"
-}
-```
-
-**4d.** Inject the `JayLeaderboard` helper script inline after the config block.
-
-Full spec: `leaderboard-server/other/leaderboard-integration-plan.md` (Steps 1–4)
-and: `leaderboard-server/other/leaderboard-pipeline-plan.md`
-
----
-
-### Step 5 — Dry run + verify
-```
-python scripts/patch_all_games.py --dry-run
-```
-Check output HTML of one leaderboard-enabled game and one non-enabled game.
-
----
-
-### Step 6 — Full build, commit, push
+### Step 2 — Full build, commit, push
 ```
 python scripts/build_arcade.py --commit --push
 ```
+Run from `games-directory-page/`.
 
 ---
 
-### Step 7 — End-to-end test
-Pick one game (apple-catcher is a good first target). Confirm:
+### Step 3 — End-to-end test
+Confirm on apple-catcher:
 - Score submission reaches the server (POST /scores returns 201)
 - Leaderboard fetches and displays correctly in-game (GET /scores/:gameId)
 - Mobile and desktop boards are separate
@@ -134,5 +52,4 @@ Pick one game (apple-catcher is a good first target). Confirm:
 
 ## Nice-to-Do Later
 - Set accurate scoreMax per game in both gameConfig.js (server) and game.json files (pipeline)
-- Confirm score ranges match what Railway has deployed
-- Arcade cabinet device type (defined in spec, not in production yet)
+- Arcade cabinet device type (defined in spec, not yet in production)
