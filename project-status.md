@@ -1,5 +1,5 @@
 # Leaderboard Project Status
-**Last updated: 2026-04-04**
+**Last updated: 2026-04-11**
 
 ---
 
@@ -29,24 +29,10 @@
 
 ## What's Left (In Order)
 
-### Step 1 — Rebuild apple-catcher in TurboWarp
-Wire up the leaderboard blocks in the apple-catcher `.sb3` project, re-export, drop ZIP in `../exports/`.
-
----
-
-### Step 2 — Full build, commit, push
-```
-python scripts/build_arcade.py --commit --push
-```
-Run from `games-directory-page/`.
-
----
-
-### Step 3 — End-to-end test
-Confirm on apple-catcher:
-- Score submission reaches the server (POST /scores returns 201)
-- Leaderboard fetches and displays correctly in-game (GET /scores/:gameId)
-- Mobile and desktop boards are separate
+### ~~Step 1 — Rebuild apple-catcher in TurboWarp~~ ✓ Done
+### ~~Step 2 — Full build, commit, push~~ ✓ Done
+### ~~Step 3 — End-to-end test~~ ✓ Done (2026-04-11)
+Scores landing confirmed: POST /scores returns 201, GET /scores/apple-catcher returns ranked entries.
 
 ---
 
